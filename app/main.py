@@ -7,7 +7,6 @@ from langchain.tools import tool
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import ToolMessage
 
-# 1. Configuração de Ambiente
 load_dotenv()
 
 model = ChatGroq(
@@ -16,7 +15,6 @@ model = ChatGroq(
     groq_api_key=os.getenv("GROQ_API_KEY")
 )
 
-# 2. Definição das Ferramentas
 @tool 
 def multiplique(a: int, b: int) -> int:
     """Multiplica a e b."""
@@ -36,12 +34,9 @@ tools = [add, multiplique, divida]
 tools_by_name = {tool.name: tool for tool in tools}
 model_withtools = model.bind_tools(tools)
 
-# 3. Definição do Estado do Grafo
 class MensagensState(TypedDict):
-    # O operator.add faz com que novas mensagens sejam anexadas à lista
     mensagens: Annotated[list, operator.add]
 
-# 4. FUNÇÕES DOS NÓS (Devem vir ANTES do workflow)
 def call_model(state: MensagensState):
     """Nó que chama o LLM"""
     resposta = model_withtools.invoke(state["mensagens"])
@@ -64,7 +59,6 @@ def should_continue(state: MensagensState):
         return "tools"
     return END
 
-# 5. Montagem do Grafo (Agora as funções acima já existem para o Python)
 workflow = StateGraph(MensagensState)
 
 workflow.add_node("agent", call_model)
@@ -74,5 +68,4 @@ workflow.add_edge(START, "agent")
 workflow.add_conditional_edges("agent", should_continue)
 workflow.add_edge("tools", "agent")
 
-# Variável que o LangGraph busca para rodar o servidor
 app = workflow.compile()
