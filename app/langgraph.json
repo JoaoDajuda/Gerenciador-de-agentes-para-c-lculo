@@ -1,0 +1,7 @@
+{
+  "dependencies": ["langgraph", "langchain-anthropic", "python-dotenv"],
+  "graphs": {
+    "agent": "./main.py:app"
+  },
+  "env": ".env"
+}
